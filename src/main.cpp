@@ -23,7 +23,7 @@ int main(void)
     InitWindow(screenWidth, screenHeight, "NX Raylib Template");
 
     // Texture loading
-    Texture2D exampleTex = LoadTexture("romfs:/resources/example.png");
+    //Texture2D exampleTex = LoadTexture("romfs:/resources/example.png");
 
     if(IsGamepadAvailable(gamepad))
     {
@@ -64,7 +64,7 @@ int main(void)
                 if (rightTrigger < rightTriggerDeadzone) rightTrigger = -1.0f;
 
 
-                DrawText("NX Raylib Template", 190, 200, 20, BLACK);
+                DrawText("Puszta Browser NX", 190, 200, 20, BLACK);
                 DrawText("By Laky2k8", 190, 230, 20, RED);
 
                 DrawText(TextFormat("Left Stick: (%.2f, %.2f)", leftStickX, leftStickY), 10, 50, 20, DARKGRAY);
@@ -73,7 +73,7 @@ int main(void)
                 DrawText(TextFormat("Right Trigger: %.2f", rightTrigger), 10, 140, 20, DARKGRAY);
 
                 //DrawTexture(exampleTex, screenWidth/2 - exampleTex.width/2, screenHeight/2 - exampleTex.height/2, WHITE);
-                DrawTexture(exampleTex, screenWidth/2 - exampleTex.width/2, 300, WHITE);
+                //DrawTexture(exampleTex, screenWidth/2 - exampleTex.width/2, 300, WHITE);
             }
         EndDrawing();
     }
