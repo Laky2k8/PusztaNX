@@ -6,7 +6,7 @@
 #include <raylib.h>
 #include <switch.h>
 
-
+#include <openssl/ssl.h>
 #include <curl/curl.h>
 
 const int screenWidth = 1280;
@@ -55,6 +55,10 @@ int main(void)
         }
     }
     EndDrawing();
+
+    // Load CE Certificate for HTTPS
+    const char *certPath = "romfs:/resources/cacert.pem";
+    const char *certData = LoadFileText(certPath);
 
     // Texture loading
     //Texture2D exampleTex = LoadTexture("romfs:/resources/example.png");
@@ -125,6 +129,7 @@ int main(void)
         EndDrawing();
     }
 
+    curl_global_cleanup();
     socketExit();
     CloseWindow();
 
@@ -166,7 +171,7 @@ int request_website(std::string url, std::string* htmlResponse)
 
     if(curl)
     {
-        curl_easy_setopt(curl, CURLOPT_URL, url);
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
         curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curl_errbuf);
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
         curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
@@ -195,7 +200,7 @@ int request_website(std::string url, std::string* htmlResponse)
        DrawText(TextFormat("curl init failed: %s", curl_easy_strerror(resCode)), 10, 120, 20, RED);
     }
 
-    curl_global_cleanup();
+
     EndDrawing();
 
     return (int)resCode;
