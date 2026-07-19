@@ -27,7 +27,34 @@ int request_website(std::string url, std::string* htmlResponse);
 
 int main(void)
 {
+
+
+
     InitWindow(screenWidth, screenHeight, "NX Raylib Template");
+
+    // Init networking and curl
+    socketInitializeDefault();
+
+    BeginDrawing();
+    ClearBackground(RAYWHITE);
+    DrawText("Initalizing curl...", 10, 90, 20, BLUE);
+    CURLcode curlRes = curl_global_init(CURL_GLOBAL_ALL);
+
+    if(curlRes != CURLE_OK)
+    {
+        DrawText(TextFormat("curl init failed: %s", curl_easy_strerror(curlRes)), 10, 120, 20, RED);
+        DrawText("Press + to exit", 10, 150, 20, RED);
+
+        // Wait for user to press +, then exit
+        while (!WindowShouldClose() && running)
+        {
+            if (IsGamepadButtonPressed(gamepad, GAMEPAD_BUTTON_MIDDLE_RIGHT))
+            {
+                running = false;
+            }
+        }
+    }
+    EndDrawing();
 
     // Texture loading
     //Texture2D exampleTex = LoadTexture("romfs:/resources/example.png");
@@ -51,7 +78,7 @@ int main(void)
     {
         BeginDrawing();
         
-            if(IsGamepadAvailable(gamepad))
+            if(IsGamepadAvailable(gamepad) && requestRes == 0)
             {
 
                 // Plus button to exit
@@ -84,7 +111,7 @@ int main(void)
                 DrawText("Puszta Browser NX", 20, 40, 20, BLACK);
                 DrawText("By Laky2k8", 20, 80, 20, RED);
 
-                DrawText(TextFormat("Result code of request: %d", requestRes), 1020, 50, 20, BLACK);
+                DrawText(TextFormat("Result code of request: %d", requestRes), 920, 50, 20, BLACK);
                 DrawText(websiteHTML.c_str(), 1020, 80, 20, BLACK);
 
                 DrawText(TextFormat("Left Stick: (%.2f, %.2f)", leftStickX, leftStickY), 1020, 590, 20, DARKGRAY);
@@ -98,6 +125,7 @@ int main(void)
         EndDrawing();
     }
 
+    socketExit();
     CloseWindow();
 
     return 0;
@@ -132,14 +160,7 @@ int request_website(std::string url, std::string* htmlResponse)
     ClearBackground(RAYWHITE);
 
 
-    DrawText("Initalizing curl...", 10, 90, 20, BLUE);
-    resCode = curl_global_init(CURL_GLOBAL_ALL);
 
-    if(resCode != CURLE_OK)
-    {
-        DrawText(TextFormat("curl init failed: %d", (int)resCode), 10, 120, 20, RED);
-        return (int)resCode;
-    }
 
     curl = curl_easy_init();
 
@@ -154,7 +175,7 @@ int request_website(std::string url, std::string* htmlResponse)
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_to_string);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
 
-        DrawText("Getting webpage", 10, 90, 20, BLUE);
+        DrawText("Getting webpage", 10, 120, 20, BLUE);
         resCode = curl_easy_perform(curl);
 
         if(resCode == CURLE_OK)
@@ -163,7 +184,7 @@ int request_website(std::string url, std::string* htmlResponse)
         }
         else
         {
-            DrawText(TextFormat("Getting webpage failed: %s", curl_errbuf), 10, 150, 20, RED);
+            DrawText(TextFormat("Getting webpage failed: %s", curl_easy_strerror(resCode)), 10, 150, 20, RED);
         }
 
         curl_easy_cleanup(curl);
@@ -171,7 +192,7 @@ int request_website(std::string url, std::string* htmlResponse)
     }
     else
     {
-       DrawText(TextFormat("curl init failed: %s", curl_errbuf), 10, 120, 20, RED);
+       DrawText(TextFormat("curl init failed: %s", curl_easy_strerror(resCode)), 10, 120, 20, RED);
     }
 
     curl_global_cleanup();
