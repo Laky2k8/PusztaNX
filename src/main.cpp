@@ -6,7 +6,7 @@
 #include <raylib.h>
 #include <switch.h>
 
-#include <openssl/ssl.h>
+
 #include <curl/curl.h>
 
 const int screenWidth = 1280;
@@ -56,10 +56,6 @@ int main(void)
     }
     EndDrawing();
 
-    // Load CE Certificate for HTTPS
-    const char *certPath = "romfs:/resources/cacert.pem";
-    const char *certData = LoadFileText(certPath);
-
     // Texture loading
     //Texture2D exampleTex = LoadTexture("romfs:/resources/example.png");
 
@@ -74,6 +70,7 @@ int main(void)
         DrawText("Controller is not available! Something is wrong!", 10, 10, 20, RED);
         EndDrawing();
     }
+    
 
     std::string websiteHTML = "";
     int requestRes = request_website("https://example.org", &websiteHTML);
@@ -164,18 +161,28 @@ int request_website(std::string url, std::string* htmlResponse)
     BeginDrawing();
     ClearBackground(RAYWHITE);
 
-
-
-
     curl = curl_easy_init();
 
     if(curl)
     {
+
+        /*curl_version_info_data *info = curl_version_info(CURLVERSION_NOW);
+        // Print LibCurl version, SSL version, host and features
+        DrawText(TextFormat("LibCurl Version: %s", info->version), 10, 240, 20, BLACK);
+        DrawText(TextFormat("OpenSSL Version: %s", info->ssl_version), 10, 270, 20, BLACK);
+        DrawText(TextFormat("Host: %s", info->host), 10, 300, 20, BLACK);
+        DrawText(TextFormat("Features: 0x%x", info->features), 10, 330, 20, BLACK);*/
+
+        curl_easy_setopt(curl, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
+
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
         curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, curl_errbuf);
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
         curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-        curl_easy_setopt(curl, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
+
+        curl_easy_setopt(curl, CURLOPT_CAINFO, "romfs:/resources/cacert.pem");
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
 
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_to_string);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
@@ -190,6 +197,7 @@ int request_website(std::string url, std::string* htmlResponse)
         else
         {
             DrawText(TextFormat("Getting webpage failed: %s", curl_easy_strerror(resCode)), 10, 150, 20, RED);
+            DrawText(TextFormat("Error buffer: %s", curl_errbuf), 10, 180, 20, RED);
         }
 
         curl_easy_cleanup(curl);
